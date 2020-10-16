@@ -1,113 +1,101 @@
 import sys
 import math
 
-#pdbname = sys.argv[1]
+
+# STEP 1: read the pdb file
+
+#pdbfilename=sys.argv[1]
+
 f = open("2FA9noend.pdb")
 lines = f.readlines()
+f.close()
 #data = [lines]
 
-a = input("Would you like to center your data geometrically(g) or by center of mass(c)? [g/c] ")
+a = input("Would you like to center your data geometrically (g) or by center of mass (c)? [g/c] ")
 g = "g"
 c = "c"
 
-#create/define the lists and the dictionary term (masses)
-xs = []
-ys = []
-zs = []
-masses = {'H':1.01, 'C':12.00, 'N':14.00, 'O':16.00, 'P':30.97, 'S':32.06}
-    #element masses to use in center of mass calculation
-    #set up as a dictionary to avoid having to keep track of the position of the columns
-columns = []
-    #set each column as a list
-elements = []
-    #set the elements as a list
-
+records=[]
+massdict={"H":1.01, "C":12.01,"N":14.01,"O":16.0, "P":30.97, "S":32.07,"MG":24.30}
 for line in lines:
-    #print (line)
-    if line[:4] == "ATOM":
-                #only perform the following actions if the line begins with ATOM
-            columns.append(line.split())
-            elements.append(line.split()[-1])
-                #have elements start reading from the right
-            xs.append(line.split()[6])
-                #6 = 7th column (start counting from 0)
-            #print(line)
-                #this makes everything appear as a list with uneven columns
-                #if you want the columns to be even, remove the .split()
-            ys.append(line.split()[7])
-            zs.append(line.split()[8])
+	atomdict={}
 
-#create the variables
-totalx = 0
-totaly = 0
-totalz = 0
-totalm = 0
+	# item1 = column 1 of the pdbfile - ATOM
+	item1=str(line[0:5])
 
-#top of the fraction (sum of coordinate multiplied by element mass)
-for x,m in zip(xs,elements):
- totalx += float(x)*masses[m]
+	# item2 = column 2 of the pdbfile - atom serial number
+	item2=str(line[6:11])
 
-#bottom of the fraction (sum of element masses)
-for m in elements:
- totalm += int(masses[m])
+	# item3 = column 3 of the pdbfile - atom name
+	item3=str(line[12:16])
 
-for y,m in zip(ys,elements):
- totaly += float(y)*masses[m]
+	# item4 = column 4 of the pdbfile - residue name
+	item4=str(line[17:20])
 
-for z,m in zip(zs,elements):
- totalz += float(z)*masses[m]
+	# item5 = column 5 of the pdbfile - chain identifier
+	item5=str(line[21])
 
-#center of mass calculation
-comx = totalx/totalm
-comy = totaly/totalm
-comz = totalz/totalm
+	# item6 = column 6 of the pdbfile - residue sequence number
+	item6=int(line[22:26])
 
-#shifted to origin
-ox = float(x)-comx
-oy = float(y)-comy
-oz = float(z)-comz
+	# x = column 7 of the pdbfile - x coordinates
+	x=float(line[30:38])
 
-columns1 = []
+	# y = column 8 of the pdbfile - y coordinates
+	y=float(line[39:46])
 
-#make the origin numbers a list so they can be appended
-ox = []
-oy = []
-oz = []
+	# z = column 9 of the pdbfile - z coordinates
+	z=float(line[47:54])
 
-for line in lines:
-    if line[:4] == "ATOM":
-                #only perform the following actions if the line begins with ATOM
-            columns1.append(line.split())
-            elements.append(line.split()[-1])
-                #have elements start reading from the right
-            ox.append(line.split()[6])
-                #6 = 7th column (start counting from 0)
-            #print(line)
-                #this makes everything appear as a list with uneven columns
-                #if you want the columns to be even, remove the .split()
-            oy.append(line.split()[7])
-            oz.append(line.split()[8])
+	# item7 = column 10 of the pdbfile - occupancy
+	item7=float(line[55:60])
 
-for line in lines:
-    #print (line)
-    if line[:4] == "ATOM":
-        if a == g:
-            print(line)
-        elif a == c:
-            print(line)
+	# item8 = column 11 of the pdbfile - temperature factor
+	item8=float(line[61:66])
 
-#print results
-#print("This is the total x:", totalx)
-#print("This is the total y:", totaly)
-#print("This is the total z:", totalz)
-#print("This is the total mass of the elements:", totalm)
-#print("This is the center of mass for x:", comx)
-#print("This is the center of mass for y:", comy)
-#print("This is the center of mass for z:", comz)
-#print("This is the reoriented x coordinate:", ox)
-#print("This is the reoriented y coordinate:", oy)
-#print("This is the reoriented z coordinate:", oz)
+	# element = column 12 of the pdbfile - element
+	element=line[76:78].strip()
+
+	# mass = mass of the element
+	mass=massdict[element]
+	records.append([item1,item2,item3,item4,item5,item6,x,y,z,item7,item8,element,mass])
+
+
+# STEP 2: calculation for center mass coordinates
+
+summass=0
+sumxmass=0
+sumymass=0
+sumzmass=0
+
+# calculate sum (coordinates*mass)
+
+for record in records:
+	summass+=record[12]
+	sumxmass+=record[12]*record[6]
+	sumymass+=record[12]*record[7]
+	sumzmass+=record[12]*record[8]
+
+# calculate center mass coordinates, where center mass coordinates = sum (coordinates * mass) / sum (mass)
+
+cmx=sumxmass/summass
+cmy=sumymass/summass
+cmz=sumzmass/summass
+
+
+# STEP 3: create a new textfile (pdbfile); write data to the new file
+# When writing data to the new file, the new coordinates = original coordinates - center mass coordinates
+
+f=open("project01out.pdb",'w')
+for atom in records:
+    if a == g:
+        s="{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
+        f.write(s.format(atom[0],atom[1],atom[2],atom[3],atom[4],atom[5],atom[6],atom[7],atom[8],atom[9],atom[10],atom[11]))
+    elif a == c:
+        s="{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
+        f.write(s.format(atom[0],atom[1],atom[2],atom[3],atom[4],atom[5],atom[6]-cmx,atom[7]-cmx,atom[8]-cmx,atom[9],atom[10],atom[11]))
 
 f.close()
 
-print("Done")
+
+print("Done!")
