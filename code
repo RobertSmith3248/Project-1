@@ -1,10 +1,10 @@
 import sys
 import math
 
-#pdbname=sys.argv[1]
-f=open("2FA9noend.pdb")#,'r')
-lines=f.readlines()
-data = [lines]
+#pdbname = sys.argv[1]
+f = open("2FA9noend.pdb")
+lines = f.readlines()
+#data = [lines]
 
 a = input("Would you like to center your data geometrically(g) or by center of mass(c)? [g/c] ")
 g = "g"
@@ -18,7 +18,9 @@ masses = {'H':1.01, 'C':12.00, 'N':14.00, 'O':16.00, 'P':30.97, 'S':32.06}
     #element masses to use in center of mass calculation
     #set up as a dictionary to avoid having to keep track of the position of the columns
 columns = []
+    #set each column as a list
 elements = []
+    #set the elements as a list
 
 for line in lines:
     #print (line)
@@ -65,25 +67,46 @@ ox = float(x)-comx
 oy = float(y)-comy
 oz = float(z)-comz
 
+columns1 = []
+
+#make the origin numbers a list so they can be appended
+ox = []
+oy = []
+oz = []
+
+for line in lines:
+    if line[:4] == "ATOM":
+                #only perform the following actions if the line begins with ATOM
+            columns1.append(line.split())
+            elements.append(line.split()[-1])
+                #have elements start reading from the right
+            ox.append(line.split()[6])
+                #6 = 7th column (start counting from 0)
+            #print(line)
+                #this makes everything appear as a list with uneven columns
+                #if you want the columns to be even, remove the .split()
+            oy.append(line.split()[7])
+            oz.append(line.split()[8])
+
 for line in lines:
     #print (line)
     if line[:4] == "ATOM":
         if a == g:
             print(line)
         elif a == c:
-            print("Episode I is underrated.")
+            print(line)
 
 #print results
-print("This is the total x:", totalx)
-print("This is the total y:", totaly)
-print("This is the total z:", totalz)
-print("This is the total mass of the elements:", totalm)
-print("This is the center of mass for x:", comx)
-print("This is the center of mass for y:", comy)
-print("This is the center of mass for z:", comz)
-print("This is the reoriented x coordinate:", ox)
-print("This is the reoriented y coordinate:", oy)
-print("This is the reoriented z coordinate:", oz)
+#print("This is the total x:", totalx)
+#print("This is the total y:", totaly)
+#print("This is the total z:", totalz)
+#print("This is the total mass of the elements:", totalm)
+#print("This is the center of mass for x:", comx)
+#print("This is the center of mass for y:", comy)
+#print("This is the center of mass for z:", comz)
+#print("This is the reoriented x coordinate:", ox)
+#print("This is the reoriented y coordinate:", oy)
+#print("This is the reoriented z coordinate:", oz)
 
 f.close()
 
