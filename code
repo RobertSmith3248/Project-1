@@ -1,101 +1,109 @@
+#Project #1, BCH 5884
+#repository:
+
 import sys
 import math
 
-
-# STEP 1: read the pdb file
-
-#pdbfilename=sys.argv[1]
-
+#read in pdb file
 f = open("2FA9noend.pdb")
 lines = f.readlines()
 f.close()
-#data = [lines]
 
+#create an input statement to allow the user to choose how to center the data
 a = input("Would you like to center your data geometrically (g) or by center of mass (c)? [g/c] ")
 g = "g"
 c = "c"
 
-records=[]
-massdict={"H":1.01, "C":12.01,"N":14.01,"O":16.0, "P":30.97, "S":32.07,"MG":24.30}
+#turns records into a list
+records = []
+
+#create a dictionary of the elements and their masses in g/mol
+massdict = {"H":1.01, "C":12.01, "N":14.01, "O":16.0, "P":30.97, "S":32.07, "MG":24.30}
 for line in lines:
-	atomdict={}
+	atomdict = {}
 
-	# item1 = column 1 of the pdbfile - ATOM
-	item1=str(line[0:5])
+	#ATOM
+	column1 = str(line[0:5])
 
-	# item2 = column 2 of the pdbfile - atom serial number
-	item2=str(line[6:11])
+	#serial number
+	column2 = str(line[6:11])
 
-	# item3 = column 3 of the pdbfile - atom name
-	item3=str(line[12:16])
+	#atom name
+	column3 = str(line[12:16])
 
-	# item4 = column 4 of the pdbfile - residue name
-	item4=str(line[17:20])
+	#residue name
+	column4 = str(line[17:20])
 
-	# item5 = column 5 of the pdbfile - chain identifier
-	item5=str(line[21])
+	#chain identifier
+	column5 = str(line[21])
 
-	# item6 = column 6 of the pdbfile - residue sequence number
-	item6=int(line[22:26])
+	#residue sequence number
+	column6 = int(line[22:26])
 
-	# x = column 7 of the pdbfile - x coordinates
-	x=float(line[30:38])
+	#x coordinates
+	x = float(line[30:38])
 
-	# y = column 8 of the pdbfile - y coordinates
-	y=float(line[39:46])
+	#y coordinates
+	y = float(line[39:46])
 
-	# z = column 9 of the pdbfile - z coordinates
-	z=float(line[47:54])
+	#z coordinates
+	z = float(line[47:54])
 
-	# item7 = column 10 of the pdbfile - occupancy
-	item7=float(line[55:60])
+	#occupancy
+	column10 = float(line[55:60])
 
-	# item8 = column 11 of the pdbfile - temperature factor
-	item8=float(line[61:66])
+	#temperature factor
+	column11 = float(line[61:66])
 
-	# element = column 12 of the pdbfile - element
-	element=line[76:78].strip()
+	#element
+	element = line[76:78].strip()
 
-	# mass = mass of the element
-	mass=massdict[element]
-	records.append([item1,item2,item3,item4,item5,item6,x,y,z,item7,item8,element,mass])
+	#mass of element
+	mass = massdict[element]
+
+    #appending all records
+	records.append([column1, column2, column3, column4, column5, column6, x, y, z, column10, column11, element, mass])
 
 
-# STEP 2: calculation for center mass coordinates
+#Create total coordinate and total mass variables
+totalmass = 0
+totalx = 0
+totaly = 0
+totalz = 0
 
-summass=0
-sumxmass=0
-sumymass=0
-sumzmass=0
-
-# calculate sum (coordinates*mass)
-
+#calculate top of fraction, total coordinate * total mass
 for record in records:
-	summass+=record[12]
-	sumxmass+=record[12]*record[6]
-	sumymass+=record[12]*record[7]
-	sumzmass+=record[12]*record[8]
+	totalmass += record[12]
+	totalx += record[12] * record[6]
+	totaly += record[12] * record[7]
+	totalz += record[12] * record[8]
 
-# calculate center mass coordinates, where center mass coordinates = sum (coordinates * mass) / sum (mass)
-
-cmx=sumxmass/summass
-cmy=sumymass/summass
-cmz=sumzmass/summass
+#calculate center of mass: total coordinate divided by total mass
+cmx = totalx / totalmass
+cmy = totaly / totalmass
+cmz = totalz / totalmass
 
 
 # STEP 3: create a new textfile (pdbfile); write data to the new file
 # When writing data to the new file, the new coordinates = original coordinates - center mass coordinates
 
-f=open("project01out.pdb",'w')
+#create pdb output file name and conditions
+f = open("project01_output.pdb",'w')
 for atom in records:
     if a == g:
-        s="{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
-        f.write(s.format(atom[0],atom[1],atom[2],atom[3],atom[4],atom[5],atom[6],atom[7],atom[8],atom[9],atom[10],atom[11]))
+        s = "{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
+            #set up how wide each column should be to accomodate the necessary characters
+            #if this step were skipped, the numbers would appear as a garbled mix with no organization
+        f.write(s.format(atom[0], atom[1], atom[2], atom[3], atom[4], atom[5], atom[6], atom[7], atom[8], atom[9], atom[10], atom[11]))
+        #if a (input) = g (geometrical), the pdb will be output without being modified
+
     elif a == c:
-        s="{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
-        f.write(s.format(atom[0],atom[1],atom[2],atom[3],atom[4],atom[5],atom[6]-cmx,atom[7]-cmx,atom[8]-cmx,atom[9],atom[10],atom[11]))
+        s = "{0:6}{1:6}{2:5}{3:4}{4:1}{5:4}{6:12.3f}{7:8.3f}{8:8.3f}{9:6.2f}{10:6.2f}{11:>12}\n"
+            #the purpose is the same as for the a == g condition
+        f.write(s.format(atom[0], atom[1], atom[2], atom[3], atom[4], atom[5], atom[6] - cmx, atom[7] - cmx, atom[8] - cmx, atom[9], atom[10], atom[11]))
+        #if a (input) = c (center of mass), the pdb will be output with the coordinates shifted to the origin
+            #subtract the center of mass of the coordinate from the coordinate (columns 6, 7, and 8)
 
 f.close()
-
 
 print("Done!")
